@@ -23,6 +23,9 @@ const Users = db.define('user', {
     type: Sequelize.DataTypes.STRING,
     allowNull: false,
   },
+  avatar: {
+    type: Sequelize.DataTypes.STRING,
+  },
 });
 
 module.exports = {

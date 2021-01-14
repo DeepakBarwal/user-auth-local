@@ -1,6 +1,7 @@
 const express = require('express');
 const session = require('express-session');
 const multer = require('multer');
+const fs = require('fs').promises;
 
 const { db, Users } = require('./db');
 
@@ -22,6 +23,8 @@ app.use(
   })
 );
 
+app.use('/images', express.static(__dirname + '/images'));
+
 app.get('/signup', (req, res) => {
   res.render('signup');
 });
@@ -29,10 +32,29 @@ app.get('/signup', (req, res) => {
 app.post('/signup', upload.single('avatar'), async (req, res) => {
   console.log('req.body', req.body);
   console.log('req.file', req.file);
+
+  const oldPath = __dirname + '/uploads/' + req.file.filename;
+  const newPath =
+    __dirname +
+    '/images/' +
+    'avatar_' +
+    req.body.username +
+    '.' +
+    req.file.mimetype.split('/').pop();
+
+  // move the file
+  await fs.rename(oldPath, newPath);
+
   const user = await Users.create({
     username: req.body.username,
     password: req.body.password, // Note: In production we save hash of password
     email: req.body.email,
+    avatar:
+      '/images/' +
+      'avatar_' +
+      req.body.username +
+      '.' +
+      req.file.mimetype.split('/').pop(),
   });
 
   res.status(201).send(`User ${user.id} created`);
@@ -73,7 +95,7 @@ app.get('/logout', (req, res) => {
   res.redirect('/login');
 });
 
-db.sync()
+db.sync({ alter: true })
   .then(() => {
     app.listen(3333, () => {
       console.log('http://localhost:3333');
