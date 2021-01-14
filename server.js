@@ -1,9 +1,11 @@
 const express = require('express');
 const session = require('express-session');
+const multer = require('multer');
 
 const { db, Users } = require('./db');
 
 const app = express();
+const upload = multer({ dest: 'uploads/' });
 
 app.set('view engine', 'hbs');
 app.use(express.urlencoded({ extended: true }));
@@ -24,7 +26,9 @@ app.get('/signup', (req, res) => {
   res.render('signup');
 });
 
-app.post('/signup', async (req, res) => {
+app.post('/signup', upload.single('avatar'), async (req, res) => {
+  console.log('req.body', req.body);
+  console.log('req.file', req.file);
   const user = await Users.create({
     username: req.body.username,
     password: req.body.password, // Note: In production we save hash of password
